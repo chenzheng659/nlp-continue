@@ -1,20 +1,23 @@
-# src/drone_visualizer/threejs_visualizer.py
+# src/drone/threejs_visualizer.py
 import json
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any
+from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from config import DRONE_VISUALIZER_CONFIG, BASE_DIR
+from config import DRONE_VISUALIZER_CONFIG
+
+_DRONE_DIR = Path(__file__).parent
 
 class DroneVisualizer:
     """无人机路径3D可视化器"""
     
     def __init__(self):
         self.templates = Jinja2Templates(
-            directory=str(BASE_DIR / "src" / "drone_visualizer" / "templates")
+            directory=str(_DRONE_DIR / "templates")
         )
-        self.static_dir = BASE_DIR / "src" / "drone_visualizer" / "static"
+        self.static_dir = _DRONE_DIR / "static"
         
     def generate_path_data(self, instruction: str, generated_code: str) -> Dict:
         """
@@ -39,10 +42,11 @@ class DroneVisualizer:
             "code_snippet": generated_code[:200] + "..." if len(generated_code) > 200 else generated_code
         }
     
-    def render_visualization_page(self, path_data: Dict) -> HTMLResponse:
+    def render_visualization_page(self, path_data: Dict, request: Request = None) -> HTMLResponse:
         """渲染包含Three.js可视化的HTML页面"""
         template_data = {
-            "path_data": json.dumps(path_data),
+            "mission_name": path_data.get("mission_name", ""),
+            "path_data": path_data,
             "threejs_version": DRONE_VISUALIZER_CONFIG["threejs_version"],
             "path_color": DRONE_VISUALIZER_CONFIG["path_color"],
             "grid_size": DRONE_VISUALIZER_CONFIG["grid_size"],
@@ -52,7 +56,7 @@ class DroneVisualizer:
         
         return self.templates.TemplateResponse(
             "visualizer.html", 
-            {"request": None, "data": template_data}
+            {"request": request, "data": template_data}
         )
     
     def get_static_path(self, filename: str) -> str:

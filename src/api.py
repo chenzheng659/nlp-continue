@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 "1"
-from drone_visualizer import DroneVisualizer, PathProcessor
+from drone import DroneVisualizer, PathProcessor
 
 from src.retriever import get_retriever
 from src.workflow  import run_workflow
@@ -52,8 +52,7 @@ async def lifespan(app: FastAPI):
     yield
     print("服务关闭。")
 
-app = FastAPI(lifespan=lifespan)
-app = FastAPI(title="混合代码生成助手API")
+app = FastAPI(title="混合代码生成助手API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -62,7 +61,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 "1"
-app.mount("/static", StaticFiles(directory=Path(__file__).parent / "drone_visualizer" / "static"), name="static")
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "drone" / "static"), name="static")
 drone_visualizer = DroneVisualizer()
 path_processor = PathProcessor()
 
@@ -109,7 +108,7 @@ async def get_visualizer_page(request: Request, mission_id: Optional[str] = None
             "waypoints": path_processor.generate_waypoints(sample_path, 50)
         }
         
-        return drone_visualizer.render_visualization_page(path_data)
+        return drone_visualizer.render_visualization_page(path_data, request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"可视化页面生成失败: {str(e)}")
 
@@ -118,7 +117,7 @@ async def generate_and_visualize(request: GenerateRequest):
     """生成代码并返回可视化数据（一步完成）"""
     try:
         # 1. 调用原有的工作流生成代码
-        result = await workflow_engine.run_workflow(request.instruction, request.source_code)
+        result = await run_workflow(request.instruction, request.source_code)
         
         # 2. 生成可视化数据
         path_data = drone_visualizer.generate_path_data(
