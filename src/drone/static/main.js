@@ -130,7 +130,7 @@ function loadDroneModel() {
 
 function addLabel(position, text) {
     const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
+    let context = canvas.getContext('2d');
     context.font = 'Bold 20px Arial';
     const textWidth = context.measureText(text).width;
     

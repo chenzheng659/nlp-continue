@@ -5,10 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>无人机路径3D可视化 - {{ data.mission_name }}</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/{{ data.threejs_version }}/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@{{ data.threejs_version }}/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@{{ data.threejs_version }}/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="/static/js/main.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="/static/main.js"></script>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -43,7 +42,7 @@
                 <p id="mission-name">任务: {{ data.mission_name }}</p>
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <div class="stat-value" id="total-distance">{{ "%.1f"|format(data.path_data.statistics.total_distance|default(0)) }}</div>
+                        <div class="stat-value" id="total-distance">{{ "%.1f"|format(data.path_data.total_distance|default(0)) }}</div>
                         <div class="stat-label">总距离(m)</div>
                     </div>
                     <div class="stat-item">
