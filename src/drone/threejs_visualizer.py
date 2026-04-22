@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Any
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from config import DRONE_VISUALIZER_CONFIG
+from src.config import DRONE_VISUALIZER_CONFIG
 
 _DRONE_DIR = Path(__file__).parent
 

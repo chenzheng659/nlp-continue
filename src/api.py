@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 "1"
-from drone import DroneVisualizer, PathProcessor
+from src.drone import DroneVisualizer, PathProcessor
 
 from src.retriever import get_retriever
 from src.workflow  import run_workflow
