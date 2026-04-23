@@ -97,6 +97,11 @@ async def generate(req: GenerateRequest):
 async def health():
     return {"status": "ok"}
 
+@app.get("/api/drone/status")
+async def drone_status():
+    """返回无人机可视化模块的可用状态"""
+    return {"available": _drone_available}
+
 @app.get("/visualizer", response_class=HTMLResponse)
 async def get_visualizer_page(request: Request, mission_id: Optional[str] = None):
     """获取无人机可视化主页面"""
