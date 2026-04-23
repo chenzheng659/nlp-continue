@@ -24,8 +24,15 @@ from pydantic import BaseModel, Field
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-"1"
-from drone import DroneVisualizer, PathProcessor
+
+try:
+    from src.drone import DroneVisualizer, PathProcessor
+    _drone_available = True
+except Exception as _drone_import_err:
+    _drone_available = False
+    DroneVisualizer = None
+    PathProcessor = None
+    print(f"[警告] 无人机可视化模块加载失败，相关端点将返回 503。原因：{_drone_import_err}")
 
 from src.retriever import get_retriever
 from src.workflow  import run_workflow
@@ -60,10 +67,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-"1"
-app.mount("/static", StaticFiles(directory=Path(__file__).parent / "drone" / "static"), name="static")
-drone_visualizer = DroneVisualizer()
-path_processor = PathProcessor()
+if _drone_available:
+    app.mount("/static", StaticFiles(directory=Path(__file__).parent / "drone" / "static"), name="static")
+    drone_visualizer = DroneVisualizer()
+    path_processor = PathProcessor()
+else:
+    drone_visualizer = None
+    path_processor = None
 
 @app.post("/generate", response_model=GenerateResponse)
 async def generate(req: GenerateRequest):
@@ -90,6 +100,8 @@ async def health():
 @app.get("/visualizer", response_class=HTMLResponse)
 async def get_visualizer_page(request: Request, mission_id: Optional[str] = None):
     """获取无人机可视化主页面"""
+    if not _drone_available:
+        raise HTTPException(status_code=503, detail="无人机可视化模块不可用")
     try:
         # 从session或数据库获取路径数据，这里使用示例数据
         sample_path = [
@@ -115,6 +127,8 @@ async def get_visualizer_page(request: Request, mission_id: Optional[str] = None
 @app.post("/api/generate_and_visualize")
 async def generate_and_visualize(request: GenerateRequest):
     """生成代码并返回可视化数据（一步完成）"""
+    if not _drone_available:
+        raise HTTPException(status_code=503, detail="无人机可视化模块不可用")
     try:
         # 1. 调用原有的工作流生成代码
         result = await run_workflow(request.instruction, request.source_code)
@@ -132,7 +146,7 @@ async def generate_and_visualize(request: GenerateRequest):
             "code_generation": result,
             "visualization": {
                 "path_data": path_data,
-                "visualizer_url": f"/visualizer?mission_id={hash(request.instruction)}",
+                "visualizer_url": f"/visualizer?mission_id={abs(hash(request.instruction))}",
                 "has_visualization": True
             }
         }
@@ -142,6 +156,8 @@ async def generate_and_visualize(request: GenerateRequest):
 @app.get("/api/visualization_data")
 async def get_visualization_data(mission_id: str):
     """获取特定任务的路径数据（API接口）"""
+    if not _drone_available:
+        raise HTTPException(status_code=503, detail="无人机可视化模块不可用")
     # 这里应该从数据库或缓存中获取真实数据
     # 现在返回示例数据
     sample_path = [
